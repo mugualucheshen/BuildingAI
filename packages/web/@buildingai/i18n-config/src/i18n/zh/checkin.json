@@ -1,0 +1,46 @@
+{
+    "system": {
+        "website": {
+            "tabs": {
+                "information": "网站信息",
+                "copyright": "版权信息",
+                "statistics": "站点统计",
+                "dailyCheckin": "每日签到"
+            }
+        }
+    },
+    "checkin": {
+        "button": "每日签到",
+        "checkedIn": "已签到",
+        "success": "签到成功！获得 {points} 积分",
+        "alreadyCheckedIn": "今日已签到",
+        "failed": "签到失败",
+        "config": {
+            "title": "签到配置",
+            "enabled": "开启每日签到",
+            "pointsType": "积分类型",
+            "fixedPoints": "固定积分",
+            "randomPoints": "随机积分",
+            "fixedPointsValue": "固定积分值",
+            "randomMin": "最小值",
+            "randomMax": "最大值"
+        },
+        "stats": {
+            "todayCount": "今日签到人数",
+            "todayPoints": "今日支出积分",
+            "monthCount": "本月签到人数",
+            "monthPoints": "本月支出积分"
+        },
+        "records": {
+            "title": "签到记录"
+        },
+        "fields": {
+            "date": "签到日期",
+            "time": "签到时间",
+            "points": "获得积分"
+        }
+    },
+    "menu": {
+        "dailyCheckin": "每日签到"
+    }
+}

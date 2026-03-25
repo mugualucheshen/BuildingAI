@@ -24,8 +24,70 @@ const props = withDefaults(
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const message = useMessage();
 
 const isOpen = ref<boolean>(false);
+
+// 每日签到状态
+const checkinStatus = ref<{
+    enabled: boolean;
+    hasCheckedIn: boolean;
+    loading: boolean;
+}>({
+    enabled: false,
+    hasCheckedIn: false,
+    loading: false,
+});
+
+// 获取签到状态
+const fetchCheckinStatus = async () => {
+    if (!userStore.isLogin) return;
+    try {
+        const res = await $fetch<{ data: { enabled: boolean; hasCheckedIn: boolean } }>(
+            "/api/daily-checkin/status",
+        );
+        checkinStatus.value.enabled = res.data.enabled;
+        checkinStatus.value.hasCheckedIn = res.data.hasCheckedIn;
+    } catch (error) {
+        console.error("获取签到状态失败:", error);
+    }
+};
+
+// 执行签到
+const handleCheckin = async () => {
+    if (checkinStatus.value.hasCheckedIn || checkinStatus.value.loading) return;
+    
+    checkinStatus.value.loading = true;
+    try {
+        const res = await $fetch<{
+            success: boolean;
+            data: { points: number; isNew: boolean };
+        }>("/api/daily-checkin/do", {
+            method: "POST",
+        });
+        
+        if (res.success && res.data.isNew) {
+            message.success(t("checkin.success", { points: res.data.points }));
+            checkinStatus.value.hasCheckedIn = true;
+            // 刷新用户信息以更新积分
+            await userStore.getUser();
+        } else if (res.success && !res.data.isNew) {
+            message.info(t("checkin.alreadyCheckedIn"));
+            checkinStatus.value.hasCheckedIn = true;
+        }
+    } catch (error: any) {
+        message.error(error.message || t("checkin.failed"));
+    } finally {
+        checkinStatus.value.loading = false;
+    }
+};
+
+// 当用户面板打开时获取签到状态
+watch(isOpen, (open) => {
+    if (open) {
+        fetchCheckinStatus();
+    }
+});
 
 // 快捷操作菜单
 const quickActions = ref<MenuItem[]>([
@@ -156,16 +218,37 @@ const handleMenuClick = (item: MenuItem) => {
                             <span class="font-medium">{{ t("layouts.power") }}:</span>
                             <span class="text-primary">{{ userStore.userInfo?.power }}</span>
                         </div>
-                        <UButton
-                            size="xs"
-                            @click="
-                                navigateTo(
-                                    `/profile/${userStore.userInfo?.id}/personal-rights/member-center`,
-                                )
-                            "
-                        >
-                            {{ t("layouts.memberSubscription") }}
-                        </UButton>
+                        <div class="flex items-center gap-2">
+                            <!-- 每日签到按钮 -->
+                            <UButton
+                                v-if="checkinStatus.enabled"
+                                size="xs"
+                                :color="checkinStatus.hasCheckedIn ? 'neutral' : 'amber'"
+                                :variant="checkinStatus.hasCheckedIn ? 'soft' : 'solid'"
+                                :loading="checkinStatus.loading"
+                                :disabled="checkinStatus.hasCheckedIn"
+                                @click.stop="handleCheckin"
+                            >
+                                <template v-if="checkinStatus.hasCheckedIn">
+                                    <UIcon name="i-lucide-check" class="mr-1" />
+                                    {{ t("checkin.checkedIn") }}
+                                </template>
+                                <template v-else>
+                                    <UIcon name="i-lucide-gift" class="mr-1" />
+                                    {{ t("checkin.button") }}
+                                </template>
+                            </UButton>
+                            <UButton
+                                size="xs"
+                                @click="
+                                    navigateTo(
+                                        `/profile/${userStore.userInfo?.id}/personal-rights/member-center`,
+                                    )
+                                "
+                            >
+                                {{ t("layouts.memberSubscription") }}
+                            </UButton>
+                        </div>
                     </div>
 
                     <!-- 快捷操作菜单 -->

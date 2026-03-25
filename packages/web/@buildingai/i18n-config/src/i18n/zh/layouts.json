@@ -24,12 +24,18 @@
     },
     "powerDetail": "积分明细",
     "userAgreement": "用户协议",
-    "privacyPolicy": "隐私政策"
-    ,
+    "privacyPolicy": "隐私政策",
     "systemInfo": {
         "title": "系统信息",
         "description": "查看当前系统版本和系统ID",
         "version": "当前版本",
         "systemId": "系统 ID"
+    },
+    "checkin": {
+        "button": "每日签到",
+        "checkedIn": "已签到",
+        "success": "签到成功！获得 {points} 积分",
+        "alreadyCheckedIn": "今日已签到",
+        "failed": "签到失败"
     }
 }

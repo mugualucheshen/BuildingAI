@@ -31,5 +31,12 @@
         "description": "View current version and system ID",
         "version": "Current Version",
         "systemId": "System ID"
+    },
+    "checkin": {
+        "button": "Daily Check-in",
+        "checkedIn": "Checked In",
+        "success": "Check-in successful! Earned {points} points",
+        "alreadyCheckedIn": "Already checked in today",
+        "failed": "Check-in failed"
     }
 }

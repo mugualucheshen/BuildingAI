@@ -7,6 +7,7 @@ const tabs = computed<{ name: string; label: string }[]>(() => [
     { name: "information", label: t("system.website.tabs.information") },
     { name: "copyright", label: t("system.website.tabs.copyright") },
     { name: "statistics", label: t("system.website.tabs.statistics") },
+    { name: "daily-checkin", label: t("system.website.tabs.dailyCheckin") },
 ]);
 
 const activeTab = computed({

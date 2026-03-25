@@ -1,0 +1,46 @@
+{
+    "system": {
+        "website": {
+            "tabs": {
+                "information": "Website Info",
+                "copyright": "Copyright",
+                "statistics": "Statistics",
+                "dailyCheckin": "Daily Check-in"
+            }
+        }
+    },
+    "checkin": {
+        "button": "Daily Check-in",
+        "checkedIn": "Checked In",
+        "success": "Check-in successful! Earned {points} points",
+        "alreadyCheckedIn": "Already checked in today",
+        "failed": "Check-in failed",
+        "config": {
+            "title": "Check-in Settings",
+            "enabled": "Enable Daily Check-in",
+            "pointsType": "Points Type",
+            "fixedPoints": "Fixed Points",
+            "randomPoints": "Random Points",
+            "fixedPointsValue": "Fixed Points Value",
+            "randomMin": "Min Value",
+            "randomMax": "Max Value"
+        },
+        "stats": {
+            "todayCount": "Today's Check-ins",
+            "todayPoints": "Today's Points",
+            "monthCount": "Monthly Check-ins",
+            "monthPoints": "Monthly Points"
+        },
+        "records": {
+            "title": "Check-in Records"
+        },
+        "fields": {
+            "date": "Date",
+            "time": "Time",
+            "points": "Points"
+        }
+    },
+    "menu": {
+        "dailyCheckin": "Daily Check-in"
+    }
+}

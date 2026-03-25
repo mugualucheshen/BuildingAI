@@ -22,6 +22,7 @@ import { DatabaseModule } from "@core/database/database.module";
 import { AnalyseModule } from "@modules/analyse/analyse.module";
 import { AuthModule } from "@modules/auth/auth.module";
 import { ChannelModule } from "@modules/channel/channel.module";
+import { DailyCheckinModule } from "@modules/daily-checkin/daily-checkin.module";
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
 import { MembershipModule } from "@modules/membership/membership.module";
@@ -93,6 +94,7 @@ export class AppModule {
                 ChannelModule,
                 AiModule,
                 AppConfigModule,
+                DailyCheckinModule,
                 DecorateModule,
                 FinanceModule,
                 HealthModule,

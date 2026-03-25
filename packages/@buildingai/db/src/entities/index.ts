@@ -1,3 +1,5 @@
+export { DailyCheckinConfig } from "./daily-checkin-config.entity";
+export { DailyCheckinRecord } from "./daily-checkin-record.entity";
 export { AccountLog } from "./account-log.entity";
 export { Agent } from "./ai-agent.entity";
 export { AgentAnnotation, AnnotationReviewStatus } from "./ai-agent-annotation.entity";
