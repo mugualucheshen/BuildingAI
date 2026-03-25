@@ -94,7 +94,6 @@ export class AppModule {
                 ChannelModule,
                 AiModule,
                 AppConfigModule,
-                forwardRef(() => DailyCheckinModule),
                 DecorateModule,
                 FinanceModule,
                 HealthModule,
