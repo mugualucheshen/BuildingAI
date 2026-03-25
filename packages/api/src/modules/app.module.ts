@@ -1,3 +1,4 @@
+import { DailyCheckinConfig, DailyCheckinRecord } from "@buildingai/db/entities";
 import { CacheModule, RedisModule } from "@buildingai/cache";
 import { createDataSourceConfig } from "@buildingai/config/db.config";
 import { getEnabledExtensionsFromConfig, initExtensionCache } from "@buildingai/core/modules";
@@ -30,6 +31,7 @@ import { DynamicModule, Module, forwardRef } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ServeStaticModule } from "@nestjs/serve-static";
+import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { existsSync } from "fs";
 import { join } from "path";
 
@@ -114,6 +116,7 @@ export class AppModule {
                 UserModule,
                 CloudStorageModule,
                 ScheduleModule,
+                TypeOrmModule.forFeature([DailyCheckinConfig, DailyCheckinRecord]),
                 await ExtensionCoreModule.register(),
             ],
             controllers: [],
