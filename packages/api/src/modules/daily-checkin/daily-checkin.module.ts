@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@buildingai/db/@nestjs/typeorm';
 import { DatabaseModule } from '@core/database/database.module';
 import { DailyCheckinService } from './daily-checkin.service';
@@ -7,7 +7,7 @@ import { DailyCheckinConfig, DailyCheckinRecord, User } from '@buildingai/db/ent
 
 @Module({
     imports: [
-        DatabaseModule,
+        forwardRef(() => DatabaseModule),
         TypeOrmModule.forFeature([DailyCheckinConfig, DailyCheckinRecord, User]),
     ],
     controllers: [DailyCheckinController],

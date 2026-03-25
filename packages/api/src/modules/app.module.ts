@@ -26,7 +26,7 @@ import { DailyCheckinModule } from "@modules/daily-checkin/daily-checkin.module"
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
 import { MembershipModule } from "@modules/membership/membership.module";
-import { DynamicModule, Module } from "@nestjs/common";
+import { DynamicModule, Module, forwardRef } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ServeStaticModule } from "@nestjs/serve-static";
@@ -94,7 +94,7 @@ export class AppModule {
                 ChannelModule,
                 AiModule,
                 AppConfigModule,
-                DailyCheckinModule,
+                forwardRef(() => DailyCheckinModule),
                 DecorateModule,
                 FinanceModule,
                 HealthModule,
