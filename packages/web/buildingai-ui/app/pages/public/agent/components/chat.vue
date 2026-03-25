@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormFieldConfig } from "@buildingai/service/consoleapi/ai-agent";
+import type { FormFieldConfig, QuickCommandConfig, QuickCommandAttachment } from "@buildingai/service/consoleapi/ai-agent";
 import type { PaginationResult } from "@buildingai/service/models/globals";
 import type { AiMessage } from "@buildingai/service/models/message";
 import {
@@ -10,8 +10,9 @@ import {
 } from "@buildingai/service/webapi/ai-agent-publish";
 import { type AiConversation, apiGetChatConfig } from "@buildingai/service/webapi/ai-conversation";
 import { extractTextFromMessageContent } from "@buildingai/utils/message-content.utils";
+import { uploadFileAdaptive } from "@buildingai/upload";
 import { useThrottleFn } from "@vueuse/core";
-import { nextTick, onMounted, onUnmounted, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, shallowRef, watch } from "vue";
 
 import PublicAgentChatsList from "./chats-list.vue";
 
@@ -362,7 +363,161 @@ const handleSubmitMessage = async (content: string) => {
     }
 
     await handleSubmit(content);
+    
+    // 发送成功后清理附件状态
+    files.value = [];
+    uploadedAttachments.value = {};
+    activeQuickCommand.value = null;
+    
     scrollToBottom();
+};
+
+// 处理快捷指令点击
+const activeQuickCommand = shallowRef<QuickCommandConfig | null>(null);
+
+// 已上传的附件记录
+const uploadedAttachments = ref<Record<string, string>>({});
+
+const handleQuickCommandClick = (item: QuickCommandConfig) => {
+    if (item.replyType === 'template') {
+        // 检查是否是同一个快捷指令，如果是则切换关闭
+        if (activeQuickCommand.value?.name === item.name) {
+            // 再次点击，关闭/清除状态
+            activeQuickCommand.value = null;
+            input.value = '';
+            files.value = [];
+            uploadedAttachments.value = {};
+            return;
+        }
+        
+        // 填入输入框
+        input.value = item.content;
+        
+        // 保存当前激活的快捷指令
+        activeQuickCommand.value = item;
+        
+        // 重置上传记录
+        uploadedAttachments.value = {};
+        
+        // 聚焦输入框
+        nextTick(() => {
+            const textarea = document.querySelector('.custom-textarea') as HTMLTextAreaElement;
+            if (textarea) {
+                textarea.focus();
+            }
+        });
+    } else {
+        // 原来的逻辑：直接发送
+        handleSubmitMessage(item.name);
+    }
+};
+
+// 检查附件是否已上传
+const isAttachmentUploaded = (placeholder: string): boolean => {
+    return !!uploadedAttachments.value[placeholder];
+};
+
+// 获取附件按钮标签
+const getAttachmentButtonLabel = (att: QuickCommandAttachment): string => {
+    if (uploadedAttachments.value[att.placeholder]) {
+        return uploadedAttachments.value[att.placeholder] as string;
+    }
+    return att.label || att.placeholder || '附件';
+};
+
+// 检查是否有未上传的必填附件
+const hasUnfilledRequiredAttachments = computed(() => {
+    if (!activeQuickCommand.value?.attachments) return false;
+    return activeQuickCommand.value.attachments.some(
+        att => att.required && !uploadedAttachments.value[att.placeholder]
+    );
+});
+
+// 处理附件上传
+const handleAttachmentUpload = async (att: QuickCommandAttachment) => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = att.maxCount > 1;
+    fileInput.accept = att.acceptTypes.join(',');
+    
+    fileInput.onchange = async (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+            // 限制文件数量
+            const filesToUpload = Array.from(target.files).slice(0, att.maxCount);
+            
+            // 上传文件并获取真实URL
+            const uploadedFiles = [];
+            for (const file of filesToUpload) {
+                try {
+                    const result = await uploadFileAdaptive(
+                        { file, description: `Attachment: ${file.name}` },
+                        { onProgress: (percent) => console.log(`Uploading ${file.name}: ${percent}%`) }
+                    );
+                    uploadedFiles.push({
+                        type: 'file_url' as const,
+                        name: file.name,
+                        url: result.url,
+                    });
+                } catch (error) {
+                    toast.error(`上传 ${file.name} 失败`);
+                    console.error('Upload failed:', error);
+                }
+            }
+            
+            if (uploadedFiles.length === 0) {
+                return;
+            }
+            
+            // 构建文件名显示
+            const fileNames = uploadedFiles.map(f => `[📎 ${f.name}]`).join(' ');
+            
+            // 替换输入框中的占位符
+            const placeholderRegex = new RegExp(att.placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\$&'), 'g');
+            input.value = input.value.replace(placeholderRegex, fileNames);
+            
+            // 记录已上传
+            uploadedAttachments.value[att.placeholder] = uploadedFiles.map(f => f.name).join(', ');
+            
+            // 将文件添加到 files 列表（用于发送时提交）
+            files.value = [...files.value, ...uploadedFiles];
+            
+            toast.success(`已上传 ${uploadedFiles.length} 个文件`);
+        }
+    };
+    fileInput.click();
+};
+
+// 删除附件
+const removeAttachment = (att: QuickCommandAttachment) => {
+    // 从上传记录中删除
+    delete uploadedAttachments.value[att.placeholder];
+    
+    // 清空所有文件（简化处理）
+    files.value = [];
+    
+    // 恢复输入框为原始模板内容
+    if (activeQuickCommand.value) {
+        input.value = activeQuickCommand.value.content;
+    }
+    
+    toast.info(`已删除 ${att.label || att.placeholder}，请重新上传所需附件`);
+};
+
+// 带附件验证的提交
+const handleSubmitWithAttachmentCheck = () => {
+    // 检查必填附件
+    if (hasUnfilledRequiredAttachments.value) {
+        const requiredAtts = activeQuickCommand.value?.attachments?.filter(
+            att => att.required && !uploadedAttachments.value[att.placeholder]
+        );
+        const attNames = requiredAtts?.map(att => att.label || att.placeholder).join('、');
+        toast.error(`请上传必填附件：${attNames}`);
+        return;
+    }
+    
+    // 正常提交
+    handleSubmitMessage(input.value);
 };
 
 // 监听器
@@ -827,15 +982,64 @@ useHead({
                             <UButton
                                 v-for="item in agent.quickCommands"
                                 :key="item.name"
-                                color="neutral"
-                                variant="soft"
+                                :color="activeQuickCommand?.name === item.name ? 'primary' : 'neutral'"
+                                :variant="activeQuickCommand?.name === item.name ? 'solid' : 'soft'"
                                 size="sm"
-                                @click="handleSubmitMessage(item.name)"
+                                @click.stop.prevent="handleQuickCommandClick(item)"
                             >
                                 <NuxtImg v-if="item.avatar" :src="item.avatar" class="h-4 w-4" />
                                 <span>{{ item.name }}</span>
+                                <UIcon
+                                    v-if="item.attachments?.length"
+                                    v-for="att in item.attachments"
+                                    :key="att.id"
+                                    name="i-lucide-paperclip"
+                                    class="ml-1"
+                                    :class="activeQuickCommand?.name === item.name ? 'text-white' : 'text-primary'"
+                                />
                             </UButton>
                         </div>
+                    </div>
+
+                    <!-- 多附件上传按钮区域 -->
+                    <div
+                        v-if="activeQuickCommand?.attachments?.length"
+                        class="mb-2 flex flex-wrap items-center gap-2"
+                    >
+                        <template v-for="att in activeQuickCommand.attachments" :key="att.id">
+                            <div class="flex items-center gap-1">
+                                <UButton
+                                    size="xs"
+                                    :color="isAttachmentUploaded(att.placeholder) ? 'success' : 'primary'"
+                                    variant="soft"
+                                    :disabled="false"
+                                    :title="att.description || ''"
+                                    @click="handleAttachmentUpload(att)"
+                                >
+                                    <UIcon name="i-lucide-paperclip" class="mr-1" />
+                                    <span v-if="att.required" class="text-error mr-1">*</span>
+                                    {{ getAttachmentButtonLabel(att) }}
+                                    <UIcon
+                                        v-if="isAttachmentUploaded(att.placeholder)"
+                                        name="i-lucide-check"
+                                        class="ml-1"
+                                    />
+                                </UButton>
+                                <!-- 删除附件按钮 -->
+                                <UButton
+                                    v-if="isAttachmentUploaded(att.placeholder)"
+                                    size="xs"
+                                    color="error"
+                                    variant="ghost"
+                                    icon="i-lucide-x"
+                                    @click="removeAttachment(att)"
+                                />
+                            </div>
+                        </template>
+                        <!-- 必填验证提示 -->
+                        <span v-if="hasUnfilledRequiredAttachments" class="text-error text-xs">
+                            请上传标有 * 的必填附件
+                        </span>
                     </div>
 
                     <!-- 输入框 -->
@@ -852,7 +1056,7 @@ useHead({
                         class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                         :rows="1"
                         @stop="stop"
-                        @submit="handleSubmitMessage"
+                        @submit="handleSubmitWithAttachmentCheck"
                     >
                         <template #panel-right-item>
                             <span

@@ -19,6 +19,59 @@ import {
 } from "class-validator";
 
 /**
+ * 快捷指令附件配置DTO（支持多附件）
+ */
+export class QuickCommandAttachmentDto {
+    /**
+     * 唯一ID
+     */
+    @IsString({ message: "ID必须是字符串" })
+    @IsNotEmpty({ message: "ID不能为空" })
+    id: string;
+
+    /**
+     * 占位符
+     */
+    @IsString({ message: "占位符必须是字符串" })
+    @IsNotEmpty({ message: "占位符不能为空" })
+    placeholder: string;
+
+    /**
+     * 按钮标签
+     */
+    @IsString({ message: "标签必须是字符串" })
+    @IsNotEmpty({ message: "标签不能为空" })
+    label: string;
+
+    /**
+     * 是否必填
+     */
+    @IsBoolean({ message: "是否必填必须是布尔值" })
+    required: boolean;
+
+    /**
+     * 解释文案
+     */
+    @IsOptional()
+    @IsString({ message: "解释文案必须是字符串" })
+    description?: string;
+
+    /**
+     * 最大数量
+     */
+    @IsInt({ message: "最大数量必须是整数" })
+    @Min(1, { message: "最大数量至少为1" })
+    maxCount: number;
+
+    /**
+     * 接受的文件类型
+     */
+    @IsArray({ message: "接受的文件类型必须是数组" })
+    @IsString({ each: true, message: "文件类型必须是字符串" })
+    acceptTypes: string[];
+}
+
+/**
  * 快捷指令配置DTO
  */
 export class QuickCommandConfigDto {
@@ -48,7 +101,7 @@ export class QuickCommandConfigDto {
      */
     @IsString({ message: "回复类型必须是字符串" })
     @IsNotEmpty({ message: "回复类型不能为空" })
-    replyType: "custom" | "model";
+    replyType: "custom" | "model" | "template";
 
     /**
      * 回复内容
@@ -56,6 +109,14 @@ export class QuickCommandConfigDto {
     @IsOptional()
     @IsString({ message: "回复内容必须是字符串" })
     replyContent?: string;
+
+    /**
+     * 附件配置数组
+     */
+    @IsOptional()
+    @ValidateNested({ each: true, message: "附件配置格式不正确" })
+    @Type(() => QuickCommandAttachmentDto)
+    attachments?: QuickCommandAttachmentDto[];
 }
 
 /**

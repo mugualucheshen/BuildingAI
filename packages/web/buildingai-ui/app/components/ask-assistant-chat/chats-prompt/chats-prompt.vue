@@ -49,6 +49,14 @@ const props = withDefaults(
          * 第三方平台的文件上传配置（如 Dify 的 allowed_file_extensions）
          */
         fileUploadConfig?: FileUploadConfig;
+        /**
+         * 占位符配置，用于显示内联附件按钮
+         */
+        placeholders?: Array<{
+            key: string;
+            label: string;
+            required?: boolean;
+        }>;
     }>(),
     {
         modelValue: "",
@@ -58,6 +66,7 @@ const props = withDefaults(
         rows: 1,
         needAuth: false,
         attachmentSizeLimit: 10,
+        placeholders: () => [],
     },
 );
 
@@ -90,6 +99,84 @@ const {
 } = usePromptFiles();
 
 const canSubmit = computed(() => inputValue.value.trim().length > 0 || files.value.length > 0);
+
+// 占位符处理
+const placeholderRegex = /\{(附件|file|attachment)\d*\}/gi;
+
+// 解析文本中的占位符
+const parsedContent = computed(() => {
+    if (!inputValue.value || props.placeholders.length === 0) return [];
+    
+    const parts: Array<{ type: 'text' | 'placeholder'; content: string; key?: string }> = [];
+    let lastIndex = 0;
+    let match;
+    
+    const regex = new RegExp(placeholderRegex.source, 'gi');
+    
+    while ((match = regex.exec(inputValue.value)) !== null) {
+        // 添加占位符前的文本
+        if (match.index > lastIndex) {
+            parts.push({
+                type: 'text',
+                content: inputValue.value.slice(lastIndex, match.index),
+            });
+        }
+        
+        // 添加占位符
+        const key = match[0].toLowerCase();
+        const placeholder = props.placeholders.find(p => 
+            key.includes(p.key.toLowerCase()) || 
+            (p.key === '附件' && (key.includes('附件') || key.includes('file') || key.includes('attachment')))
+        );
+        
+        parts.push({
+            type: 'placeholder',
+            content: match[0],
+            key: placeholder?.key || match[0],
+        });
+        
+        lastIndex = match.index + match[0].length;
+    }
+    
+    // 添加剩余文本
+    if (lastIndex < inputValue.value.length) {
+        parts.push({
+            type: 'text',
+            content: inputValue.value.slice(lastIndex),
+        });
+    }
+    
+    return parts.length > 0 ? parts : [{ type: 'text', content: inputValue.value }];
+});
+
+// 检查是否有未替换的占位符
+const hasUnfilledPlaceholders = computed(() => {
+    return parsedContent.value.some(part => part.type === 'placeholder');
+});
+
+// 处理占位符点击（触发文件上传）
+const handlePlaceholderClick = async (placeholderKey: string) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.onchange = async (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+            for (const file of target.files) {
+                await uploadFile(file);
+            }
+            filesList.value = generateFilesList();
+            
+            // 替换文本中的占位符为文件名
+            const fileNames = Array.from(target.files).map(f => `[📎 ${f.name}]`).join(' ');
+            const regex = new RegExp(`\\{${placeholderKey}\\}`, 'gi');
+            inputValue.value = inputValue.value.replace(regex, fileNames);
+            
+            toast.success('文件上传成功');
+        }
+    };
+    input.click();
+};
 
 function handleFocus() {
     uTextareaRefs.value?.textareaRef?.focus();
@@ -157,6 +244,13 @@ async function handleRetryUpload(file: FileItem | FilePreviewItem) {
         }
     }
 }
+
+// 暴露方法供外部调用
+defineExpose({
+    focus: handleFocus,
+    files,
+    isUploading,
+});
 
 const { lockFn: handleOptimizeText, isLock: isOptimizing } = useLockFn(async () => {
     if (!inputValue.value.trim()) {
@@ -236,6 +330,7 @@ onMounted(() =>
             @remove="handleFileRemove"
             @retry="handleRetryUpload"
         />
+
         <UTextarea
             ref="uTextareaRefs"
             v-model="inputValue"

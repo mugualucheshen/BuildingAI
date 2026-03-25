@@ -8,14 +8,36 @@ export interface AutoQuestionsConfig {
 }
 
 /**
+ * 快捷指令附件配置类型（支持多附件）
+ */
+export interface QuickCommandAttachment {
+    /** 唯一ID */
+    id: string;
+    /** 占位符，如 {附件1} */
+    placeholder: string;
+    /** 按钮标签 */
+    label: string;
+    /** 是否必填 */
+    required: boolean;
+    /** 解释文案 */
+    description?: string;
+    /** 最大数量 */
+    maxCount: number;
+    /** 接受的文件类型 */
+    acceptTypes: string[];
+}
+
+/**
  * 快捷指令配置类型
  */
 export interface QuickCommandConfig {
     avatar: string;
     name: string;
     content: string;
-    replyType: "custom" | "model";
+    replyType: "custom" | "model" | "template";
     replyContent: string;
+    /** 附件配置数组（支持多附件） */
+    attachments?: QuickCommandAttachment[];
 }
 
 export interface ModelBillingConfig {

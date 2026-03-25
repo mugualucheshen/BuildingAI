@@ -179,6 +179,23 @@ export interface AutoQuestionsConfig {
  * Quick command configuration interface
  * @description Configuration for predefined quick commands in agent interface
  */
+export interface QuickCommandAttachment {
+    /** 唯一ID */
+    id: string;
+    /** 占位符，如 {附件1} */
+    placeholder: string;
+    /** 按钮标签 */
+    label: string;
+    /** 是否必填 */
+    required: boolean;
+    /** 解释文案 */
+    description?: string;
+    /** 最大数量 */
+    maxCount: number;
+    /** 接受的文件类型 */
+    acceptTypes: string[];
+}
+
 export interface QuickCommandConfig {
     /** Command avatar/icon */
     avatar: string;
@@ -186,10 +203,12 @@ export interface QuickCommandConfig {
     name: string;
     /** Command content */
     content: string;
-    /** Reply type: custom or model-generated */
-    replyType: "custom" | "model";
+    /** Reply type: custom, model-generated, or template (fill input) */
+    replyType: "custom" | "model" | "template";
     /** Reply content */
     replyContent: string;
+    /** Attachment configurations (support multiple) */
+    attachments?: QuickCommandAttachment[];
 }
 
 /**
