@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { InjectRepository } from '@buildingai/db/@nestjs/typeorm';
+import { Repository, Between } from '@buildingai/db/typeorm';
 import { DailyCheckinConfig, DailyCheckinRecord, User } from '@buildingai/db/entities';
 
 @Injectable()

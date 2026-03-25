@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@buildingai/db/@nestjs/typeorm';
 import { DailyCheckinService } from './daily-checkin.service';
 import { DailyCheckinController } from './daily-checkin.controller';
 import { DailyCheckinConfig, DailyCheckinRecord, User } from '@buildingai/db/entities';
