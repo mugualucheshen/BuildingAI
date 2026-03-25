@@ -12,6 +12,8 @@ import {
     Payconfig,
     SecretTemplate,
     User,
+    DailyCheckinConfig,
+    DailyCheckinRecord,
 } from "@buildingai/db/entities";
 import { DataSource, EntityMetadata, Logger as TypeOrmLogger } from "@buildingai/db/typeorm";
 import { TerminalLogger } from "@buildingai/logger";
@@ -282,6 +284,8 @@ async function logDatabaseInfo(
             AiProvider,
             AiModel,
             SecretTemplate,
+            DailyCheckinConfig,
+            DailyCheckinRecord,
         ]),
     ],
     controllers: [],
