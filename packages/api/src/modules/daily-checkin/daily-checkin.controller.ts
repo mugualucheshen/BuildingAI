@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
 import { DailyCheckinService } from './daily-checkin.service';
 import { DailyCheckinConfig } from '@buildingai/db/entities';
 import { WebController } from '@common/decorators/controller.decorator';
@@ -7,7 +6,6 @@ import { Public } from '@buildingai/decorators/public.decorator';
 import { Playground } from '@buildingai/decorators/playground.decorator';
 import type { UserPlayground } from '@buildingai/db';
 
-@ApiTags('每日签到')
 @WebController('daily-checkin')
 export class DailyCheckinController {
     constructor(private readonly dailyCheckinService: DailyCheckinService) {}
