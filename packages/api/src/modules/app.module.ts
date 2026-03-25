@@ -1,4 +1,3 @@
-import { DailyCheckinConfig, DailyCheckinRecord } from "@buildingai/db/entities";
 import { CacheModule, RedisModule } from "@buildingai/cache";
 import { createDataSourceConfig } from "@buildingai/config/db.config";
 import { getEnabledExtensionsFromConfig, initExtensionCache } from "@buildingai/core/modules";
@@ -23,7 +22,6 @@ import { DatabaseModule } from "@core/database/database.module";
 import { AnalyseModule } from "@modules/analyse/analyse.module";
 import { AuthModule } from "@modules/auth/auth.module";
 import { ChannelModule } from "@modules/channel/channel.module";
-import { DailyCheckinModule } from "@modules/daily-checkin/daily-checkin.module";
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
 import { MembershipModule } from "@modules/membership/membership.module";
@@ -116,7 +114,6 @@ export class AppModule {
                 UserModule,
                 CloudStorageModule,
                 ScheduleModule,
-                TypeOrmModule.forFeature([DailyCheckinConfig, DailyCheckinRecord]),
                 await ExtensionCoreModule.register(),
             ],
             controllers: [],
